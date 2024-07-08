@@ -1,0 +1,42 @@
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import linear_kernel
+import pandas as pd
+
+items = {
+    'Item': ['Item1', 'Item2', 'Item3', 'Item4', 'Item5'],
+    'Description': [
+        'This is a great book about artificial intelligence.',
+        'Learn Python programming with this comprehensive guide.',
+        'A thrilling mystery novel.',
+        'An introduction to machine learning.',
+        'A science fiction story set in a dystopian future.'
+    ]
+}
+
+items_df = pd.DataFrame(items)
+
+
+user_preferences = {
+    'User': ['A', 'B', 'C', 'D'],
+    'Liked_Item': ['Item1', 'Item2', 'Item3', 'Item4']
+}
+
+user_preferences_df = pd.DataFrame(user_preferences)
+
+
+tfidf = TfidfVectorizer(stop_words='english')
+tfidf_matrix = tfidf.fit_transform(items_df['Description'])
+
+
+item_similarity = linear_kernel(tfidf_matrix, tfidf_matrix)
+
+item_similarity_df = pd.DataFrame(item_similarity, index=items_df['Item'], columns=items_df['Item'])
+
+
+def recommend_items_based_on_content(user, n_recommendations):
+    liked_item = user_preferences_df[user_preferences_df['User'] == user]['Liked_Item'].values[0]
+    similar_items = item_similarity_df[liked_item].sort_values(ascending=False).index[1:n_recommendations+1]
+    return similar_items
+
+print("\nContent-based recommendations for user C:")
+print(recommend_items_based_on_content('C', 4))
